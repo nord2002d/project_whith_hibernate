@@ -1,1 +1,1 @@
-# project_whith_hibernate
+# project_with_hibernate
