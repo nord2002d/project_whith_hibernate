@@ -1,13 +1,11 @@
 package jm.task.core.jdbc.util;
 
 import jm.task.core.jdbc.model.User;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.service.ServiceRegistry;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -17,6 +15,7 @@ import java.util.logging.Logger;
 
 public class Util implements AutoCloseable {
     private static Connection connection;
+    private static EntityManagerFactory entityManagerFactory;
     private static final String DB_NAME = "testdb";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "testtest";
@@ -49,21 +48,27 @@ public class Util implements AutoCloseable {
         return settings;
     }
 
-    public static Session getSession(Properties prop) {
+    public static EntityManagerFactory getEntityManagerFactory(Properties prop) {
         Configuration configuration = new Configuration();
         configuration.setProperties(prop);
         configuration.addAnnotatedClass(User.class);
-        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
-                .applySettings(configuration.getProperties()).build();
-        SessionFactory sessionFactory = configuration.addProperties(prop).buildSessionFactory(serviceRegistry);
-        return sessionFactory.openSession();
+        if (entityManagerFactory == null) {
+            try {
+                entityManagerFactory =
+                        Persistence.createEntityManagerFactory("users", configuration.getProperties());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return entityManagerFactory;
     }
 
     @Override
     public void close() {
         try {
-            connection.close();
-        } catch (SQLException e) {
+            entityManagerFactory.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

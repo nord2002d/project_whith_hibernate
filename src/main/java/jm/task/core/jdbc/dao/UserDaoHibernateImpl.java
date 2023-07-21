@@ -2,30 +2,32 @@ package jm.task.core.jdbc.dao;
 
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class UserDaoHibernateImpl implements UserDao {
+public class UserDaoHibernateImpl extends Util implements UserDao {
     private static final Logger LOGGER = Logger.getLogger(UserDaoHibernateImpl.class.getName());
-
+    private static EntityManagerFactory managerFactory = getEntityManagerFactory(getProperties());
 
     @Override
     public void createUsersTable() {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            session.beginTransaction();
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            manager.getTransaction().begin();
             String sql = "CREATE TABLE IF NOT EXISTS users(" +
                     "id INT NOT NULL AUTO_INCREMENT, " +
                     "name TINYTEXT NOT NULL, " +
                     "last_name TINYTEXT NOT NULL, " +
                     "age INT NOT NULL, " +
                     "PRIMARY KEY(id))";
-            Query<? extends User> query = session.createSQLQuery(sql).addEntity(User.class);
+            javax.persistence.Query query = manager.createNativeQuery(sql);
             query.executeUpdate();
-            session.getTransaction().commit();
+            manager.getTransaction().commit();
+            manager.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -34,12 +36,13 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void dropUsersTable() {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            session.beginTransaction();
-            String sql = "DROP TABLE IF EXISTS users";
-            Query<? extends User> query = session.createSQLQuery(sql).addEntity(User.class);
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            manager.getTransaction().begin();
+            javax.persistence.Query query = manager.createNativeQuery("DROP TABLE IF EXISTS users");
             query.executeUpdate();
-            session.getTransaction().commit();
+            manager.getTransaction().commit();
+            manager.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,11 +50,13 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            Transaction transaction = session.beginTransaction();
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            manager.getTransaction().begin();
             User user = new User(name, lastName, age);
-            session.save(user);
-            transaction.commit();
+            manager.persist(user);
+            manager.getTransaction().commit();
+            manager.close();
             String formatMessage = String.format("*** User with name %s add in Data Base ***", name);
             LOGGER.info(formatMessage);
         } catch (Exception e) {
@@ -61,12 +66,14 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            Transaction transaction = session.beginTransaction();
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            manager.getTransaction().begin();
             User user = new User();
             user.setId(id);
-            session.remove(user);
-            transaction.commit();
+            manager.remove(user);
+            manager.getTransaction().commit();
+            manager.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -74,9 +81,10 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            Query<User> query = session.createQuery("from users", User.class);
-            return query.list();
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            TypedQuery<User> query = manager.createQuery("from users t", User.class);
+            return query.getResultList();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -85,12 +93,13 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        try (Session session = Util.getSession(Util.getProperties())) {
-            session.beginTransaction();
-            String sql = "DELETE FROM users";
-            Query<? extends User> query = session.createSQLQuery(sql).addEntity(User.class);
+        try {
+            EntityManager manager = managerFactory.createEntityManager();
+            manager.getTransaction().begin();
+            javax.persistence.Query query = manager.createNativeQuery("DELETE FROM users");
             query.executeUpdate();
-            session.getTransaction().commit();
+            manager.getTransaction().commit();
+            manager.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
