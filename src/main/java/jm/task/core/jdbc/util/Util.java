@@ -1,7 +1,6 @@
 package jm.task.core.jdbc.util;
 
 import jm.task.core.jdbc.model.User;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
@@ -17,6 +16,7 @@ import java.util.logging.Logger;
 
 public class Util implements AutoCloseable {
     private static Connection connection;
+    private static SessionFactory sessionFactory;
     private static final String DB_NAME = "testdb";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "testtest";
@@ -49,21 +49,21 @@ public class Util implements AutoCloseable {
         return settings;
     }
 
-    public static Session getSession(Properties prop) {
+    public static SessionFactory getSessionFactory(Properties prop) {
         Configuration configuration = new Configuration();
         configuration.setProperties(prop);
         configuration.addAnnotatedClass(User.class);
         ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
                 .applySettings(configuration.getProperties()).build();
-        SessionFactory sessionFactory = configuration.addProperties(prop).buildSessionFactory(serviceRegistry);
-        return sessionFactory.openSession();
+        sessionFactory = configuration.addProperties(prop).buildSessionFactory(serviceRegistry);
+        return sessionFactory;
     }
 
     @Override
     public void close() {
         try {
-            connection.close();
-        } catch (SQLException e) {
+            sessionFactory.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
