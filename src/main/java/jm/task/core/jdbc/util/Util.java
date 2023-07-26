@@ -67,4 +67,8 @@ public class Util implements AutoCloseable {
             e.printStackTrace();
         }
     }
+
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
 }

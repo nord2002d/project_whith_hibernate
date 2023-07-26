@@ -10,10 +10,10 @@ import org.hibernate.query.Query;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class UserDaoHibernateImpl extends Util implements UserDao {
+public class UserDaoHibernateImpl  implements UserDao {
     private static final Logger LOGGER = Logger.getLogger(UserDaoHibernateImpl.class.getName());
 
-    private static SessionFactory sessionFactory = getSessionFactory(getProperties());
+    private static SessionFactory sessionFactory = Util.getSessionFactory(Util.getProperties());
     @Override
     public void createUsersTable() {
         try (Session session = sessionFactory.openSession()) {

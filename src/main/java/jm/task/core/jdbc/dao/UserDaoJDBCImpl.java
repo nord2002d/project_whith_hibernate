@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 
-public class UserDaoJDBCImpl extends Util implements UserDao {
+public class UserDaoJDBCImpl implements UserDao {
     private static final Logger LOGGER = Logger.getLogger(UserDaoJDBCImpl.class.getName());
-    private Connection connection = getConnection();
+    private Connection connection = Util.getConnection();
 
 
     public UserDaoJDBCImpl() {
